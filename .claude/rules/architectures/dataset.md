@@ -33,6 +33,9 @@ __len__()
 __getitem__()
 _get_max_num_atoms()
 _get_type_map()
+get_type_map()
+analyse_pymatgen()
+analyse_ase()
 ```
 
 其中：
@@ -259,6 +262,68 @@ class ExtxyzDataset(Dataset):
             atomic_numbers.update(atoms.get_atomic_numbers())
 
         return sorted(atomic_numbers)
+
+
+    @staticmethod
+    def get_type_map(filename: str) -> List[int]:
+        atoms_list: List[Atoms] = ase_read(filename=filename, index=":")
+        atom_symbol_list: List[int] = []
+        for atoms in atoms_list:
+            for tmp_symbol in np.unique(atoms.get_atomic_numbers()):
+                if tmp_symbol not in atom_symbol_list:
+                    atom_symbol_list.append(tmp_symbol)
+        type_map: List[int] = sorted(atom_symbol_list)
+        return type_map
+    
+    
+    def analyse_pymatgen(self,
+                         structure: Structure,
+                         device: torch._C.device = torch.device("cpu")):
+        cell: np.ndarray = np.array(structure.lattice.matrix).astype(self.npy_float_dtype)
+        types: np.ndarray = np.array([self.type_map.index(el.Z) for el in structure.species])
+        cart_coords: np.ndarray = np.array(structure.cart_coords).astype(self.npy_float_dtype)
+        nblist_info = Nblist.find_info4mlff(cell=cell,
+                                            species=types,
+                                            coords=cart_coords,
+                                            rcut=self.rcut,
+                                            umax_num_neigh_atoms=self.umax_num_neigh_atoms,
+                                            is_cart_coord=True,
+                                            pbc_xyz=self.pbc_xyz,
+                                            sort=self.sort)
+        return [
+            torch.tensor(nblist_info[0], dtype=torch.int32, device=device).view(1,),
+            torch.tensor(nblist_info[1], dtype=torch.int32, device=device).view(1, -1),
+            torch.tensor(nblist_info[2], dtype=torch.int32, device=device).view(1, -1),
+            torch.tensor(nblist_info[3], dtype=torch.int32, device=device).view(1, -1, self.umax_num_neigh_atoms),
+            torch.tensor(nblist_info[4], dtype=self.torch_float_dtype, device=device).view(1, -1, self.umax_num_neigh_atoms, 3),
+            torch.tensor(nblist_info[5], dtype=torch.int32, device=device).view(1, -1),
+            torch.tensor(nblist_info[6], dtype=torch.int32, device=device).view(1,)
+        ]
+
+
+    def analyse_ase(self,
+                    atoms: Atoms,
+                    device: torch._C.device = torch.device("cpu")):
+        cell: np.ndarray = atoms.cell.array.astype(self.npy_float_dtype)
+        types: np.ndarray = np.array([self.type_map.index(el) for el in atoms.get_atomic_numbers()])
+        cart_coords: np.ndarray = atoms.positions.astype(self.npy_float_dtype)
+        nblist_info = Nblist.find_info4mlff(cell=cell,
+                                            species=types,
+                                            coords=cart_coords,
+                                            rcut=self.rcut,
+                                            umax_num_neigh_atoms=self.umax_num_neigh_atoms,
+                                            is_cart_coord=True,
+                                            pbc_xyz=self.pbc_xyz,
+                                            sort=self.sort)
+        return [
+            torch.tensor(nblist_info[0], dtype=torch.int32, device=device).view(1,),
+            torch.tensor(nblist_info[1], dtype=torch.int32, device=device).view(1, -1),
+            torch.tensor(nblist_info[2], dtype=torch.int32, device=device).view(1, -1),
+            torch.tensor(nblist_info[3], dtype=torch.int32, device=device).view(1, -1, self.umax_num_neigh_atoms),
+            torch.tensor(nblist_info[4], dtype=self.torch_float_dtype, device=device).view(1, -1, self.umax_num_neigh_atoms, 3),
+            torch.tensor(nblist_info[5], dtype=torch.int32, device=device).view(1, -1),
+            torch.tensor(nblist_info[6], dtype=torch.int32, device=device).view(1,)
+        ]
 ```
 
 # 4. Dataset 与 Model 的接口一致性
