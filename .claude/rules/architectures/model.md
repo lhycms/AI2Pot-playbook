@@ -1,22 +1,16 @@
-# AI2Pot Core Atomistic Interface
+# AI2Pot 模型接口与实现规范
 
-## Status
+本文档定义了基于 AI2Pot 开发模型时应遵循的核心架构规范。
 
-这个文档定义了 AI2Pot 的基础架构的标准。
-
-请将以下规则视为长期的设计约束，而不是为了方便而随意修改的开发约定。
-
-除非用户明确要求进行架构层面的重新设计，否则不要修改核心模型接口。
+以下规则应视为长期设计约束。除非用户明确要求进行架构层面的重新设计，否则不应为了单个模型的实现便利而随意修改核心接口。
 
 ---
 
-# 1. Core principle
+# 1. 核心模型接口
 
-AI2Pot 不仅仅是一套机器学习势函数模型的实现集合。
+AI2Pot 的核心抽象是一套统一的原子体系数据接口，可供机器学习势函数、图神经网络、神经网络紧束缚模型、生成模型等不同类型的模型使用。
 
-其核心抽象是一套 **统一的原子体系数据接口**，可以由不同模型（或许是势函数、生成模型甚至哈密顿量模型）共同使用。
-
-无论模型内部采用何种架构，标准的 AI2Pot 原子模型都使用以下7个张量作为输入：
+标准 AI2Pot 模型应使用以下 7 个张量作为核心输入：
 
 ```python
 binum_tensor
@@ -28,83 +22,65 @@ btypes_tensor
 bnghost_tensor
 ```
 
-这些张量共同构成了 **AI2Pot 核心原子体系接口（AI2Pot Core Atomistic Interface）**
+这些张量共同构成 **AI2Pot 核心原子体系接口（AI2Pot Core Atomistic Interface）**。
 
-在不同模型的实现中，应尽可能保持这些张量的名称、语义、维度约定及其功能定义一致且稳定。
+不同模型之间应尽可能保持这些张量的名称、语义、维度约定和功能定义一致。
 
----
-
-# 2. 七张量接口是模型对外的统一接口规范
-
-AI2Pot 的标准预测流程应该保持如下形式：
+标准数据流应保持为：
 
 ```text
-Structure / Dataset / ASE / LAMMPS
-                │
-                ▼
-     AI2Pot atomistic preprocessing
-                │
-                ▼
-       Core 7-Tensor Interface
-                │
-                ▼
-              Model
+Dataset / ASE / LAMMPS
+          │
+          ▼
+   AI2Pot Nblist
+          │
+          ▼
+  7-Tensor Interface
+          │
+          ▼
+        Model
 ```
 
-模型不应要求 Dataset、Trainer、ASE 接口或 LAMMPS 接口负责构建模型特定的数据表示。
-
-模型外部的基础设施应统一提供 AI2Pot 的通用数据表示。
-
-模型自身负责对该通用表示进行解析，并根据需要将其转换为模型内部所使用的特定表示形式。
+Dataset、Trainer、ASE 接口和 LAMMPS 接口负责提供统一的 AI2Pot 数据表示，不应负责构建模型特定的数据表示。
 
 ---
 
-# 3. 模型内部表示应由模型自身负责
+# 2. 模型内部表示
 
-不同类型的模型通常需要采用不同的数学表示形式。
-
-Examples include:
+不同模型可以采用不同的内部表示，例如：
 
 ```text
 MTP
 7 tensors
    ↓
-moment-tensor descriptors
+Moment Tensor Descriptor
    ↓
-energy / forces
+Model
 
 
 NEP
 7 tensors
    ↓
-NEP descriptors
+NEP Descriptor
    ↓
-neural network
+Model
 
 
-Graph neural network
+Graph Model
 7 tensors
    ↓
 GraphDataConverter
    ↓
 GraphData
    ↓
-message passing
-
-
-Neural tight binding
-7 tensors
-   ↓
-orbital / graph representation
-   ↓
-Hamiltonian model
+Model
 ```
 
-不要因为某个模型要不同的的数据表示形式，就改变 AI2Pot 全局统一的输入风格。
+不要因为某个模型需要特殊的数据表示，就修改 AI2Pot 的公共输入接口。
 
-相反，应在模型内部中实现相应的适配器或者转换器，将 AI2Pot 的通用数据表示转换为该模型所需要的特定表示形式。
+模型需要 Graph、Descriptor、Orbital Graph 等特殊表示时，应在模型内部或与模型直接相关的 Converter 中完成转换。
 
-For example, graph models should generally follow:
+例如：
 
 ```python
 def forward(
@@ -130,41 +106,78 @@ def forward(
     ...
 ```
 
-因此，图表示（Graph Representation）应被视为一种**派生表示（Derived Representation）**，而不是 AI2Pot 的通用输入格式。
+Graph、Descriptor 等均属于 **派生表示（Derived Representation）**，而不是 AI2Pot 的公共输入格式。
+
+Neighbor List 的具体约定参考同目录下的 `neighbor-list.md`。
 
 ---
 
-# 4. Neighbor-list representation is more fundamental than graph representation
+# 3. Model 与 LitModel 的职责
 
-Do not assume that every atomistic machine-learning model is fundamentally a graph neural network.
+AI2Pot 中应尽量区分 **模型本身的计算逻辑** 与 **训练逻辑**。
 
-The AI2Pot native representation is intentionally close to atomistic simulation neighbor-list data structures.
+## Model
 
-Conceptually:
+Model 应主要负责：
 
 ```text
-AI2Pot native neighbor representation
-                │
-      ┌─────────┼──────────┐
-      │         │          │
-      ▼         ▼          ▼
-     MTP       NEP     Graph Adapter
-                           │
-                           ▼
-                      Graph Model
+输入解析
+内部表示转换
+模型前向计算
+物理量预测
 ```
 
-A graph is one possible interpretation of the atomistic neighborhood.
+Model 不应负责通用的训练流程控制，例如：
 
-It should not become a mandatory intermediate representation for models that do not need one.
+```text
+optimizer
+scheduler
+training loop
+checkpoint
+logging
+```
+
+实现新的 Model 时，应优先参考：
+
+```text
+AI2Pot/ai2pot/models/mtp/linear_mtp.py
+AI2Pot/ai2pot/models/nep/nep.py
+AI2Pot/ai2pot/models/mtp/nn_mtp.py
+```
+
+## LitModel
+
+训练相关逻辑应通过 PyTorch Lightning 的 `LightningModule` 实现。
+
+LitModel 通常负责：
+
+```text
+调用 Model
+计算 loss
+training_step
+validation_step
+optimizer
+scheduler
+logging
+```
+
+实现新的 LitModel 时，应优先参考：
+
+```text
+AI2Pot/ai2pot/models/potential_train.py
+```
+
+除非存在明确的技术原因，否则不要让每个模型重新设计完全不同的 LitModel 训练范式。
+
+训练流程的详细规范参考同目录下的 `trainer.md`。
 
 ---
 
-# 5. Training and deployment should expose the same model interface
+# 4. 训练与部署应保持相同的模型接口
 
-One major architectural goal of AI2Pot is to minimize differences between training-time and deployment-time model execution.
+AI2Pot 应尽量保证训练阶段和部署阶段调用相同的 Model 接口。
 
-For example:
+例如：
 
 ```text
 Training Dataset
@@ -174,12 +187,15 @@ Training Dataset
       │
       ▼
     Model
+```
 
+以及：
 
+```text
 LAMMPS
    │
    ▼
-neighbor-list data
+Neighbor List
    │
    ▼
 7-Tensor Interface
@@ -188,71 +204,57 @@ neighbor-list data
  Model
 ```
 
-The model should ideally not care whether its inputs originate from:
+Model 原则上不应关心输入来自 Dataset、ASE、LAMMPS、CPU 或 GPU。
 
-* an AI2Pot dataset,
-* ASE,
-* a training dataloader,
-* LAMMPS,
-* CPU execution,
-* GPU execution.
-
-Avoid creating separate model APIs for training and molecular-dynamics inference unless technically unavoidable.
+除非技术上确有必要，否则不要为训练和分子动力学推理设计两套不同的 Model 输入接口。
 
 ---
 
-# 6. New model development
+# 5. 新模型的推荐实现方式
 
-When implementing a new model, prefer the following development pattern:
+新增模型时，应优先遵循：
 
 ```text
-1. Reuse AI2Pot dataset/preprocessing infrastructure
-                       ↓
-2. Receive the standard seven tensors
-                       ↓
-3. Convert them internally if necessary
-                       ↓
-4. Implement model-specific physics / architecture
-                       ↓
-5. Reuse AI2Pot training and deployment infrastructure
+复用 AI2Pot Dataset / Neighbor List
+                ↓
+        接收标准 7 个张量
+                ↓
+      构建模型内部表示
+                ↓
+         实现 Model
+                ↓
+         实现 LitModel
+                ↓
+   复用 AI2Pot Trainer / Callback
+                ↓
+     复用 ASE / LAMMPS 部署接口
 ```
 
-Examples of acceptable internal representations include:
-
-* local descriptors,
-* graph representations,
-* equivariant graph representations,
-* orbital graphs,
-* basis-function representations,
-* model-specific compressed representations.
-
-Do not redesign the global dataset or model interface merely to simplify one model implementation.
+不要仅为了简化某个模型的实现，就修改 Dataset、Neighbor List 或公共 Model 接口。
 
 ---
 
-# 7. Additional inputs
+# 6. 额外模型输入
 
-The seven tensors describe the common local atomistic environment, but they are not assumed to encode every possible physical quantity.
+7 个核心张量描述通用的局域原子环境，但不要求覆盖所有可能的物理信息。
 
-Future models may require additional task-specific information such as:
+部分模型可能需要额外输入，例如：
 
 ```text
 k-points
 orbitals
 charges
 spins
-electronic occupations
 diffusion timestep
 conditioning variables
 external fields
 ```
 
-When additional inputs are genuinely required, preserve the seven core tensors and extend the model interface deliberately.
-
-Conceptually:
+在确有必要时，可以在保留 7 个核心输入的基础上增加额外参数：
 
 ```python
-forward(
+def forward(
+    self,
     binum_tensor,
     bilist_tensor,
     bnumneigh_tensor,
@@ -261,163 +263,30 @@ forward(
     btypes_tensor,
     bnghost_tensor,
     task_specific_input,
-)
+):
+    ...
 ```
 
-Do not repurpose the meaning of an existing core tensor to carry unrelated information.
+不要修改已有核心张量的语义来承载无关信息。
 
 ---
 
-# 8. Representation adapters
+# 7. 架构决策原则
 
-Converters such as:
-
-```text
-GraphDataConverter
-```
-
-should be treated as reusable infrastructure.
-
-Future converters may include concepts such as:
+新增模型或修改现有模型时，应优先保证：
 
 ```text
-GraphDataConverter
-EquivariantGraphConverter
-OrbitalGraphConverter
-DescriptorConverter
-```
-
-A converter should transform the stable AI2Pot core representation into a model-specific representation without changing the global data contract.
-
----
-
-# 9. Performance considerations
-
-Architectural stability and runtime implementation are separate concerns.
-
-For example:
-
-```text
-7 tensors
-   ↓
-GraphDataConverter
-   ↓
-GraphData
-```
-
-may initially be implemented using native PyTorch operations such as:
-
-```text
-gather
-mask
-repeat_interleave
-stack
-```
-
-If conversion becomes a performance bottleneck, optimize the implementation rather than changing the public model contract.
-
-Possible optimization stages include:
-
-```text
-PyTorch implementation
-        ↓
-torch.compile-friendly implementation
-        ↓
-fused C++ implementation
-        ↓
-fused CUDA implementation
-```
-
-The interface should remain stable while its implementation becomes faster.
-
----
-
-# 10. Avoid model-specific infrastructure leakage
-
-Before adding a new tensor, preprocessing step, dataset field, or global abstraction, ask:
-
-> Is this information fundamentally required by atomistic models in general, or only by this particular model?
-
-If it is model-specific, prefer keeping it inside the model or a model-specific converter.
-
-Avoid changes such as:
-
-```text
-Dataset
-   ↓
-DPA-specific preprocessing
-   ↓
-DPA-specific graph
-```
-
-when this can instead be:
-
-```text
-Dataset
-   ↓
-AI2Pot Core Interface
-   ↓
-DPA model
-   ↓
-DPA-specific representation
-```
-
----
-
-# 11. Architectural decision rule
-
-When choosing between two implementations, prefer the design that preserves:
-
-```text
-stable data contract
+稳定的 7-Tensor Interface
         +
-model independence
+模型特定逻辑留在模型内部
         +
-training/deployment consistency
+Model 与 LitModel 职责清晰
         +
-high-performance implementation freedom
+训练与部署接口一致
+        +
+公共基础设施可以被不同模型复用
 ```
 
-over a design that makes one model easier to implement but introduces model-specific assumptions into the AI2Pot core.
+不要为了单个模型的实现便利，将模型特定的假设引入 AI2Pot 的公共基础设施。
 
----
-
-# 12. AI2Pot's intended abstraction
-
-Think of AI2Pot as:
-
-```text
-                 AI2Pot
-
-        Atomistic Data Contract
-                  │
-        Neighbor Infrastructure
-                  │
-          C++ / CUDA Runtime
-                  │
-              PyTorch
-                  │
-      ┌───────────┼───────────┐
-      │           │           │
-     MTP         NEP         GNN
-                              │
-                         GraphData
-```
-
-Potential future extensions may include:
-
-```text
-ML potentials
-graph neural networks
-neural tight-binding models
-atomistic generative models
-property-prediction models
-```
-
-The models may change.
-
-The internal representations may change.
-
-The optimized kernels may change.
-
-The **AI2Pot Core Atomistic Interface should remain stable**.
+**模型可以变化，内部表示可以变化，训练任务可以变化，但 AI2Pot 核心原子体系接口应尽可能保持稳定。**
