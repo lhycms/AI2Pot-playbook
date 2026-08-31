@@ -2,21 +2,21 @@
 
 ## Status
 
-This document defines a fundamental architectural invariant of AI2Pot.
+这个文档定义了 AI2Pot 的基础架构的标准。
 
-Treat the rules below as long-term design constraints rather than conventions that may be changed for convenience.
+请将以下规则视为长期的设计约束，而不是为了方便而随意修改的开发约定。
 
-Do not modify the core model interface unless the user explicitly requests an architectural redesign.
+除非用户明确要求进行架构层面的重新设计，否则不要修改核心模型接口。
 
 ---
 
 # 1. Core principle
 
-AI2Pot is not only a collection of interatomic-potential implementations.
+AI2Pot 不仅仅是一套机器学习势函数模型的实现集合。
 
-Its core abstraction is a unified atomistic data interface shared by different models and execution environments.
+其核心抽象是一套 **统一的原子体系数据接口**，可以由不同模型（或许是势函数、生成模型甚至哈密顿量模型）共同使用。
 
-Regardless of the internal model architecture, standard AI2Pot atomistic models receive the following seven tensors as their core input:
+无论模型内部采用何种架构，标准的 AI2Pot 原子模型都使用以下7个张量作为输入：
 
 ```python
 binum_tensor
@@ -28,15 +28,15 @@ btypes_tensor
 bnghost_tensor
 ```
 
-These tensors constitute the **AI2Pot Core Atomistic Interface**.
+这些张量共同构成了 **AI2Pot 核心原子体系接口（AI2Pot Core Atomistic Interface）**
 
-Their names, semantics, dimensional conventions, and roles should remain stable across model implementations whenever possible.
+在不同模型的实现中，应尽可能保持这些张量的名称、语义、维度约定及其功能定义一致且稳定。
 
 ---
 
-# 2. The seven-tensor interface is the external model contract
+# 2. 七张量接口是模型对外的统一接口规范
 
-The standard AI2Pot prediction path should conceptually remain:
+AI2Pot 的标准预测流程应该保持如下形式：
 
 ```text
 Structure / Dataset / ASE / LAMMPS
@@ -51,17 +51,17 @@ Structure / Dataset / ASE / LAMMPS
               Model
 ```
 
-Models should not require the dataset, trainer, ASE interface, or LAMMPS interface to construct model-specific representations.
+模型不应要求 Dataset、Trainer、ASE 接口或 LAMMPS 接口负责构建模型特定的数据表示。
 
-The infrastructure outside the model should provide the common AI2Pot representation.
+模型外部的基础设施应统一提供 AI2Pot 的通用数据表示。
 
-The model is responsible for interpreting or transforming that representation.
+模型自身负责对该通用表示进行解析，并根据需要将其转换为模型内部所使用的特定表示形式。
 
 ---
 
-# 3. Internal representations belong inside models
+# 3. 模型内部表示应由模型自身负责
 
-Different model families naturally require different mathematical representations.
+不同类型的模型通常需要采用不同的数学表示形式。
 
 Examples include:
 
@@ -100,9 +100,9 @@ orbital / graph representation
 Hamiltonian model
 ```
 
-Do not change the global AI2Pot input format simply because one model requires another representation.
+不要因为某个模型要不同的的数据表示形式，就改变 AI2Pot 全局统一的输入风格。
 
-Instead, implement an adapter/converter inside or immediately adjacent to that model.
+相反，应在模型内部中实现相应的适配器或者转换器，将 AI2Pot 的通用数据表示转换为该模型所需要的特定表示形式。
 
 For example, graph models should generally follow:
 
@@ -130,7 +130,7 @@ def forward(
     ...
 ```
 
-Graph representation is therefore a **derived representation**, not the universal AI2Pot input format.
+因此，图表示（Graph Representation）应被视为一种**派生表示（Derived Representation）**，而不是 AI2Pot 的通用输入格式。
 
 ---
 
