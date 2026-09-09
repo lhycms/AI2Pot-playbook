@@ -14,6 +14,7 @@
 workspace/
 ├── AI2Pot-Playbook/
 ├── AI2Pot/
+├── AI2Pot-cli/
 ├── Upstream-Model/
 └── Target-Implementation/
 ```
@@ -26,6 +27,9 @@ AI2Pot-Playbook
 
 AI2Pot
     → 提供 AI2Pot 当前实现和可复用基础设施
+
+AI2Pot-cli
+    → 提供训练输入生成、ai2pot-cli train 与后处理等面向用户的工具入口
 
 Upstream-Model
     → 提供待迁移模型的原始算法和参考实现
@@ -53,6 +57,8 @@ AI2Pot-Playbook Rules
         ↓
 AI2Pot 架构与公共接口
         ↓
+AI2Pot-cli 接入约定
+        ↓
 AI2Pot 现有实现
         ↓
 Upstream Model 的算法行为
@@ -79,11 +85,13 @@ Target Implementation
 尤其是：
 
 ```text
-architecture/
+architectures/
 ├── dataset.md
 ├── model.md
 ├── neighbor-list.md
-└── trainer.md
+├── trainer.md
+├── model_utils.md
+└── cli.md
 ```
 
 Rules 定义 AI2Pot 中长期保持稳定的架构约束。
@@ -109,6 +117,7 @@ Rules 定义 AI2Pot 中长期保持稳定的架构约束。
 ```text
 port-model-to-ai2pot
 remote-develop
+add-model-to-cli
 ```
 
 Rules 主要回答：
@@ -178,6 +187,8 @@ LAMMPS interface
 utility functions
 ```
 
+面向用户的训练输入生成、训练与后处理入口，应优先通过 AI2Pot-cli 提供（规范参考 `.claude/rules/architectures/cli.md`），不要为目标模型仓库编写独立的一次性训练脚本。
+
 不要在 Target Implementation 中重新实现 AI2Pot 已经具备的通用基础设施。
 
 如果某项新功能明显具有跨模型的通用价值，应考虑将其抽象为 AI2Pot 的公共基础设施。
@@ -230,6 +241,8 @@ checkpoint
 添加单元测试
         ↓
 进行数值验证
+        ↓
+接入 AI2Pot-cli（训练输入 / ai2pot-cli train / 后处理）
         ↓
 最后再进行性能优化
 ```

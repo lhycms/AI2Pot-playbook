@@ -42,6 +42,7 @@ AI2Pot
 * 基于 AI2Pot 实现新的机器学习模型；
 * 将已有的原子尺度机器学习模型迁移到 AI2Pot 架构；
 * 添加新的 Dataset、Model、Trainer、Converter 或 Operator；
+* 为新模型扩展 AI2Pot-cli（训练文件生成、ai2pot-cli train、后处理工具）；
 * 指导 Coding Agent 按照 AI2Pot 的架构规范完成开发任务。
 
 ---
@@ -56,6 +57,7 @@ AI2Pot-Playbook 通常与 AI2Pot 仓库以及待开发的模型仓库一起使�
 workspace/
 ├── AI2Pot-Playbook/
 ├── AI2Pot/
+├── AI2Pot-cli/
 └── AI2Pot-PaiNN/
 ```
 
@@ -65,6 +67,7 @@ workspace/
 workspace/
 ├── AI2Pot-Playbook/
 ├── AI2Pot/
+├── AI2Pot-cli/
 ├── PaiNN-reference/
 └── AI2Pot-PaiNN/
 ```
@@ -77,6 +80,9 @@ AI2Pot-Playbook
 
 AI2Pot
     → 提供现有实现和可复用基础设施
+
+AI2Pot-cli
+    → 提供训练输入生成、训练与后处理等面向用户的 CLI 工具
 
 PaiNN-reference
     → 提供原始算法和参考实现
@@ -100,6 +106,7 @@ cd workspace/AI2Pot-Playbook
 
 claude \
     --add-dir ../AI2Pot \
+    --add-dir ../AI2Pot-cli \
     --add-dir ../AI2Pot-PaiNN
 ```
 
@@ -110,6 +117,7 @@ cd workspace/AI2Pot-Playbook
 
 claude \
     --add-dir ../AI2Pot \
+    --add-dir ../AI2Pot-cli \
     --add-dir ../PaiNN-reference \
     --add-dir ../AI2Pot-PaiNN
 ```
@@ -122,6 +130,9 @@ AI2Pot-Playbook
 
 AI2Pot
     → AI2Pot 的参考实现
+
+AI2Pot-cli
+    → 面向用户的 CLI 工具实现
 
 PaiNN-reference
     → 上游模型的参考实现
@@ -154,8 +165,10 @@ AI2Pot-Playbook/
     │   └── architectures/
     │       ├── dataset.md
     │       ├── model.md
+    │       ├── model_utils.md
     │       ├── neighbor-list.md
-    │       └── trainer.md
+    │       ├── trainer.md
+    │       └── cli.md
     │
     └── skills/
         └── ...
@@ -171,7 +184,8 @@ AI2Pot-Playbook/
 * AI2Pot 七张量模型接口；
 * Neighbor List 索引规范；
 * Model 与 LitModel 的职责；
-* 训练流程规范。
+* 训练流程规范；
+* AI2Pot-cli 中模型的接入方式。
 
 Rules 主要回答：
 
@@ -188,6 +202,7 @@ implement-new-model
 port-model-to-ai2pot
 add-dataset
 add-operator
+add-model-to-cli
 debug-cuda-operator
 validate-model
 ```
