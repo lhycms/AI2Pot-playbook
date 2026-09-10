@@ -6,13 +6,13 @@
 
 ```text
 workspace/
-├── AI2Pot-Playbook/
+├── AI2Pot-playbook/
 ├── AI2Pot/
 ├── Upstream-Model/
 └── Target-Implementation/
 ```
 
-Claude Code 在本地 `AI2Pot-Playbook` 中运行，通过 SSH 使用远程服务器完成编译、测试、训练和数值验证。
+Claude Code 在本地 `AI2Pot-playbook` 中运行，通过 SSH 使用远程服务器完成编译、测试、训练和数值验证。
 
 ---
 
@@ -22,7 +22,7 @@ Claude Code 在本地 `AI2Pot-Playbook` 中运行，通过 SSH 使用远程服�
 
 ```text
 本地
-AI2Pot-Playbook
+AI2Pot-playbook
       +
 AI2Pot
       +
@@ -177,7 +177,7 @@ sudo pip install
 Agent 应在本地完成：
 
 ```text
-阅读 AI2Pot-Playbook
+阅读 AI2Pot-playbook
         ↓
 分析 AI2Pot
         ↓
@@ -214,7 +214,7 @@ rsync -az \
 
 如果测试需要 Upstream Model，也可以同步其代码。
 
-通常**不需要同步 AI2Pot-Playbook**，因为 Playbook 主要供本地 Agent 使用。
+通常**不需要同步 AI2Pot-playbook**，因为 Playbook 主要供本地 Agent 使用。
 
 不要默认使用：
 
@@ -511,7 +511,7 @@ git clean -fdx
 # 14. 推荐工作流程
 
 ```text
-读取 AI2Pot-Playbook
+读取 AI2Pot-playbook
         ↓
 分析 AI2Pot / Upstream
         ↓

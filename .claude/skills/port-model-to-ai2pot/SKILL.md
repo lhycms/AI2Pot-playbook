@@ -5,7 +5,7 @@
 适用于以下场景：
 
 ```text
-AI2Pot-Playbook/
+AI2Pot-playbook/
 AI2Pot/
 Upstream-Model/
 Target-Implementation/
@@ -13,7 +13,7 @@ Target-Implementation/
 
 其中：
 
-* `AI2Pot-Playbook`：定义 AI2Pot 的架构规则和开发规范；
+* `AI2Pot-playbook`：定义 AI2Pot 的架构规则和开发规范；
 * `AI2Pot`：提供可以复用的基础设施和参考实现；
 * `Upstream-Model`：提供待迁移模型的原始算法和参考代码；
 * `Target-Implementation`：实际需要完成开发的目标仓库。
@@ -25,7 +25,7 @@ Target-Implementation/
 迁移模型时，应遵循以下优先级：
 
 ```text
-AI2Pot-Playbook
+AI2Pot-playbook
       ↓
 AI2Pot architecture
       ↓
@@ -65,7 +65,7 @@ Target implementation
 首先阅读：
 
 ```text
-AI2Pot-Playbook/.claude/rules/
+AI2Pot-playbook/.claude/rules/
 ```
 
 尤其关注：
@@ -359,7 +359,7 @@ aggregation convention
 # 11. 推荐工作流程
 
 ```text
-阅读 AI2Pot-Playbook
+阅读 AI2Pot-playbook
         ↓
 分析 upstream repository
         ↓

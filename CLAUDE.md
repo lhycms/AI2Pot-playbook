@@ -1,4 +1,4 @@
-# AI2Pot-Playbook
+# AI2Pot-playbook
 
 本仓库是 AI2Pot 的机器可读工程知识库，用于指导 Coding Agent 维护、扩展和基于 AI2Pot 开发新的原子尺度机器学习模型。
 
@@ -12,7 +12,7 @@
 
 ```text
 workspace/
-├── AI2Pot-Playbook/
+├── AI2Pot-playbook/
 ├── AI2Pot/
 ├── AI2Pot-cli/
 ├── Upstream-Model/
@@ -22,7 +22,7 @@ workspace/
 各目录的职责为：
 
 ```text
-AI2Pot-Playbook
+AI2Pot-playbook
     → 定义架构规则、开发规范和 Agent Skills
 
 AI2Pot
@@ -40,7 +40,7 @@ Target-Implementation
 
 开发时应明确区分：
 
-> AI2Pot-Playbook 规定“应该如何实现”。
+> AI2Pot-playbook 规定“应该如何实现”。
 
 > AI2Pot 展示“AI2Pot 当前如何实现”。
 
@@ -53,7 +53,7 @@ Target-Implementation
 进行 AI2Pot 相关开发时，应遵循以下优先级：
 
 ```text
-AI2Pot-Playbook Rules
+AI2Pot-playbook Rules
         ↓
 AI2Pot 架构与公共接口
         ↓
@@ -343,7 +343,7 @@ LAMMPS test
 
 # 12. 最终目标
 
-AI2Pot-Playbook 的目标不是让 Agent 简单地“生成代码”。
+AI2Pot-playbook 的目标不是让 Agent 简单地“生成代码”。
 
 其目标是让 Agent：
 

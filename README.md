@@ -1,16 +1,16 @@
-# AI2Pot-Playbook
+# AI2Pot-playbook
 
 一个面向 [AI2Pot](https://github.com/lhycms/AI2Pot) 开发、维护与扩展的机器可读工程知识库。
 
-AI2Pot-Playbook 提供架构规则、开发技能和实现规范，既可以供开发者阅读，也可以直接供 Coding Agent 使用。
+AI2Pot-playbook 提供架构规则、开发技能和实现规范，既可以供开发者阅读，也可以直接供 Coding Agent 使用。
 
 它的主要目标是让 AI2Pot 的开发过程更加稳定和可复现：不再需要每次都重新向 Agent 解释 AI2Pot 的架构和开发约定，而是将这些知识显式地组织在 Playbook 中。
 
 ---
 
-## AI2Pot-Playbook 是什么？
+## AI2Pot-playbook 是什么？
 
-AI2Pot-Playbook 描述的是：
+AI2Pot-playbook 描述的是：
 
 > **AI2Pot 应该如何开发。**
 
@@ -21,7 +21,7 @@ AI2Pot-Playbook 描述的是：
 两者的职责不同：
 
 ```text
-AI2Pot-Playbook
+AI2Pot-playbook
     ↓
 架构规则
 开发约定
@@ -49,13 +49,13 @@ AI2Pot
 
 ## 推荐的 Workspace 结构
 
-AI2Pot-Playbook 通常与 AI2Pot 仓库以及待开发的模型仓库一起使用。
+AI2Pot-playbook 通常与 AI2Pot 仓库以及待开发的模型仓库一起使用。
 
 推荐的目录结构为：
 
 ```text
 workspace/
-├── AI2Pot-Playbook/
+├── AI2Pot-playbook/
 ├── AI2Pot/
 ├── AI2Pot-cli/
 └── AI2Pot-PaiNN/
@@ -65,7 +65,7 @@ workspace/
 
 ```text
 workspace/
-├── AI2Pot-Playbook/
+├── AI2Pot-playbook/
 ├── AI2Pot/
 ├── AI2Pot-cli/
 ├── PaiNN-reference/
@@ -75,7 +75,7 @@ workspace/
 各个仓库承担不同的职责：
 
 ```text
-AI2Pot-Playbook
+AI2Pot-playbook
     → 规定代码应该如何设计和实现
 
 AI2Pot
@@ -95,14 +95,14 @@ AI2Pot-PaiNN
 
 ## 与 Claude Code 配合使用
 
-通常应从 **AI2Pot-Playbook 根目录启动 Claude Code**。
+通常应从 **AI2Pot-playbook 根目录启动 Claude Code**。
 
-原因是 AI2Pot-Playbook 中的 `.claude/` 目录包含项目所需的 Rules 和 Skills。
+原因是 AI2Pot-playbook 中的 `.claude/` 目录包含项目所需的 Rules 和 Skills。
 
 例如：
 
 ```bash
-cd workspace/AI2Pot-Playbook
+cd workspace/AI2Pot-playbook
 
 claude \
     --add-dir ../AI2Pot \
@@ -113,7 +113,7 @@ claude \
 如果同时需要参考原始模型仓库：
 
 ```bash
-cd workspace/AI2Pot-Playbook
+cd workspace/AI2Pot-playbook
 
 claude \
     --add-dir ../AI2Pot \
@@ -125,7 +125,7 @@ claude \
 此时 Coding Agent 可以同时访问：
 
 ```text
-AI2Pot-Playbook
+AI2Pot-playbook
     → 架构规则和开发技能
 
 AI2Pot
@@ -146,7 +146,7 @@ AI2Pot-PaiNN
 ```text
 请在 AI2Pot-PaiNN 中实现 PaiNN。
 
-开发过程中遵循 AI2Pot-Playbook 中定义的架构规则和开发规范。
+开发过程中遵循 AI2Pot-playbook 中定义的架构规则和开发规范。
 
 尽可能复用 AI2Pot 中已有的基础设施，
 PaiNN-reference 主要用于参考模型结构、算法和数学实现。
@@ -156,10 +156,10 @@ PaiNN-reference 主要用于参考模型结构、算法和数学实现。
 
 ## 仓库结构
 
-AI2Pot-Playbook 主要由 **Rules** 和 **Skills** 两部分组成：
+AI2Pot-playbook 主要由 **Rules** 和 **Skills** 两部分组成：
 
 ```text
-AI2Pot-Playbook/
+AI2Pot-playbook/
 └── .claude/
     ├── rules/
     │   └── architectures/
@@ -241,7 +241,7 @@ Skills 主要回答：
 
 ## 开发理念
 
-AI2Pot-Playbook 将软件架构和开发经验视为可以持续积累和复用的工程知识。
+AI2Pot-playbook 将软件架构和开发经验视为可以持续积累和复用的工程知识。
 
 模型可以变化。
 
